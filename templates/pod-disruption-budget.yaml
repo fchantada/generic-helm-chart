@@ -1,0 +1,22 @@
+{{- if and .Values.pod .Values.pod.disruptionBudget .Values.pod.disruptionBudget.enabled -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "helper.chartName" . }}-pdb
+  namespace: {{ include "helper.namespace" . }}
+  labels:
+    {{- include "helper.labels" . | nindent 4 }}
+    {{- with .Values.pod.disruptionBudget.extraLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if .Values.pod.disruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.pod.disruptionBudget.minAvailable }}
+  {{- end }}
+  {{- if .Values.pod.disruptionBudget.maxAvailable }}
+  maxAvailable: {{ .Values.pod.disruptionBudget.maxAvailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "helper.selectorLabels" . | nindent 6 }}
+{{- end }}

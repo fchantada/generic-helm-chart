@@ -1,0 +1,31 @@
+{{- if and .Values.rbac .Values.rbac.roleBinding .Values.rbac.roleBinding.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "helper.chartName" . }}-rolebinding
+  namespace: {{ include "helper.namespace" . }}
+  labels:
+    {{- include "helper.labels" . | nindent 4 }}
+    {{- if .Values.rbac.roleBinding }}
+    {{- with .Values.rbac.roleBinding.extraLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- end }}
+  {{- if .Values.rbac.roleBinding }}
+  {{- with .Values.rbac.roleBinding.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- end }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "helper.serviceAccount" . }}
+    namespace: {{ include "helper.namespace" . }}
+  {{- with .Values.rbac.roleBinding.extraSubjects }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+roleRef:
+  kind: Role
+  name: {{ include "helper.chartName" . }}-role
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

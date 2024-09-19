@@ -1,0 +1,47 @@
+{{- if and .Values.service .Values.service.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "helper.chartName" . }}-service
+  namespace: {{ include "helper.namespace" . }}
+  labels:
+    {{- include "helper.labels" . | nindent 4 }}
+    {{- with .Values.service.extraLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- if or .Values.service.annotations (eq .Values.service.type "LoadBalancer") .Values.app.metricsPort }}
+  annotations:
+    {{- with .Values.service.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.service.type "LoadBalancer" }}
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.service.hostname }}
+    {{- end }}
+    {{- if .Values.app.metricsPort }}
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "{{ .Values.app.metricsPort }}"
+    {{- end }}
+  {{- end }}
+spec:
+  {{- if .Values.service.type }}
+  type: {{ .Values.service.type }}
+  {{- end }}
+  {{- if or .Values.app.listenPort .Values.app.metricsPort }}
+  ports:
+    {{- if .Values.app.listenPort }}
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: {{ .Values.app.listenPort }}
+    {{- end }}
+    {{- if .Values.app.metricsPort }}
+    - name: metrics
+      port: 9001
+      protocol: TCP
+      targetPort: {{ .Values.app.metricsPort }}
+    {{- end }}
+  {{- end }}
+  selector:
+    {{- include "helper.selectorLabels" . | nindent 4 }}
+{{- end }}

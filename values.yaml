@@ -1,0 +1,58 @@
+app:
+  name: example-app
+  namespace: example
+  version: "1.0.0"
+  # port where the underlying app is listening for requests
+  listenPort: 80
+  metricsPort: 3001
+
+serviceAccount:
+  create: true
+
+service:
+  enabled: true
+  type: ClusterIP
+
+ingress:
+  - name: example-app-default
+    host: example.io
+    path: 
+      - /v1
+    className: nginx
+
+deployment:
+  enabled: true
+  replicaCount: 2
+
+pod:
+  restartPolicy: Always
+  terminationGracePeriodSecs: 30
+  container:
+    repository: example-app
+    tag: latest
+    pullPolicy: IfNotPresent
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 3000
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    readinessProbe:
+      failureThreshold: 3
+      httpGet:
+        path: /health
+        port: 80
+        scheme: HTTP
+      periodSeconds: 5
+      successThreshold: 1
+      timeoutSeconds: 5
+    livenessProbe:
+      failureThreshold: 3
+      httpGet:
+        path: /health
+        port: 80
+        scheme: HTTP
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5

@@ -1,0 +1,26 @@
+{{- if and .Values.rbac .Values.rbac.clusterRoleBinding .Values.rbac.clusterRoleBinding.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "helper.chartName" . }}-clusterrolebinding
+  labels:
+    {{- include "helper.labels" . | nindent 4 }}
+    {{- with .Values.rbac.clusterRoleBinding.extraLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.rbac.clusterRoleBinding.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "helper.serviceAccount" . }}
+    namespace: {{ include "helper.namespace" . }}
+  {{- with .Values.rbac.clusterRoleBinding.extraSubjects }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "helper.chartName" . }}-clusterrole
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

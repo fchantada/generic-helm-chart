@@ -1,0 +1,148 @@
+{{- if and .Values.deployment .Values.deployment.enabled -}}
+apiVersion: apps/v1
+{{- if .Values.deployment.stateful }}
+kind: StatefulSet
+{{- else }}
+kind: Deployment
+{{- end }}
+metadata:
+  name: {{ include "helper.chartName" . }}-deployment
+  namespace: {{ include "helper.namespace" . }}
+  labels:
+    {{- include "helper.labels" . | nindent 4 }}
+    {{- with .Values.deployment.extraLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    {{- with .Values.deployment.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not (and .Values.pod .Values.pod.autoscaling .Values.pod.autoscaling.enabled) }}
+  replicas: {{ .Values.deployment.replicaCount | default "1" }}
+  {{- end }}
+  {{- if .Values.deployment.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.deployment.revisionHistoryLimit }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "helper.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "helper.labels" . | nindent 8 }}
+        {{- if .Values.pod }}
+        {{- with .Values.pod.extraLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- end }}
+      {{- if .Values.pod }}
+      {{- with .Values.pod.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "helper.serviceAccount" . }}
+      {{- if and .Values.pod (hasKey .Values.pod "automountServiceAccountToken") (eq (default true .Values.pod.automountServiceAccountToken) false) }}
+      automountServiceAccountToken: false
+      {{- else }}
+      automountServiceAccountToken: true
+      {{- end }}
+      {{- if and .Values.pod .Values.pod.restartPolicy }}
+      restartPolicy: {{ .Values.pod.restartPolicy }}
+      {{- end }}
+      {{- if and .Values.pod .Values.pod.terminationGracePeriodSecs }}
+      terminationGracePeriodSeconds: {{ .Values.pod.terminationGracePeriodSecs }}
+      {{- end }}
+      {{- if .Values.pod }}
+      {{- with .Values.pod.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.pod.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      containers:
+        {{- if .Values.pod.container }}
+        - name: {{ include "helper.chartName" . }}
+          image: "{{ .Values.pod.container.repository | default (include "helper.chartName" .) }}:{{ .Values.pod.container.tag | default .Values.app.version }}"
+          imagePullPolicy: {{ .Values.pod.container.pullPolicy }}
+          ports:
+            {{- if .Values.app.listenPort }}
+            - name: http
+              containerPort: {{ .Values.app.listenPort }}
+              protocol: TCP
+            {{- end }}
+            {{- if .Values.app.metricsPort }}
+            - name: metrics
+              containerPort: {{ .Values.app.metricsPort }}
+              protocol: TCP
+            {{- end }}
+          {{- with .Values.pod.container.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.pod.container.securityContext }}
+          securityContext:
+            {{- toYaml .| nindent 12 }}
+          {{- end }}
+          {{- with .Values.pod.container.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.pod.container.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.pod.container.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.pod.container.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- if .Values.pod }}
+        {{- with .Values.pod.volumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.pod }}
+      {{- with .Values.pod.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.pod.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.pod.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+  {{- if and .Values.deployment.stateful .Values.persistence .Values.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: storage
+    spec:
+      accessModes:
+        {{- range .Values.persistence.accessModes }}
+        - {{ . | quote }}
+        {{- end }}
+      storageClassName: {{ .Values.persistence.storageClassName | default "default" | quote }}
+      resources:
+        requests:
+          storage: {{ .Values.persistence.size | quote }}
+      {{- with .Values.persistence.selectorLabels }}
+      selector:
+        matchLabels:
+          {{- toYaml . | nindent 10 }}
+      {{- end }}
+  {{- end }}
+{{- end }}

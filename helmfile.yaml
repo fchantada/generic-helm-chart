@@ -1,0 +1,21 @@
+helmDefaults:
+  wait: true
+  timeout: 120
+  atomic: true
+  createNamespace: false
+
+---
+
+repositories:
+  - name: generic
+    url: git+ssh://git@github.com/fchantada/generic-helm-chart@/?ref=main
+
+releases:
+  - name: example-app
+    version: 1.0.0
+    namespace: example
+    chart: generic/generic-helm-chart
+    labels:
+      app: example-app
+    values:
+     - ./values.yaml

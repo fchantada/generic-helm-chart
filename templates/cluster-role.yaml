@@ -1,0 +1,26 @@
+{{- if and .Values.rbac .Values.rbac.clusterRole .Values.rbac.clusterRole.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "helper.chartName" . }}-clusterrole
+  labels:
+    {{- include "helper.labels" . | nindent 4 }}
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+    {{- with .Values.rbac.clusterRole.extraLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.rbac.clusterRole.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules:
+  {{- if or (not (hasKey .Values.rbac.clusterRole "defaultRule")) (eq .Values.rbac.clusterRole.defaultRule true) }}
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "watch", "list"]
+  {{- end }}
+  {{- with .Values.rbac.clusterRole.extraRules }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+{{- end }}
