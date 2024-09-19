@@ -1,5 +1,5 @@
 apiVersion: v2
-name: helm-charts
+name: generic-helm-chart
 description: A Helm chart for Kubernetes
 type: application
 version: "1.0.0" # Chart version
