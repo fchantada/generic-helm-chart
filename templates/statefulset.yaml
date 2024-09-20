@@ -1,25 +1,25 @@
-{{- if and .Values.deployment .Values.deployment.enabled -}}
+{{- if and .Values.statefulSet .Values.statefulSet.enabled -}}
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: {{ include "helper.chartName" . }}-deployment
+  name: {{ include "helper.chartName" . }}-statefulSet
   namespace: {{ include "helper.namespace" . }}
   labels:
     {{- include "helper.labels" . | nindent 4 }}
-    {{- with .Values.deployment.extraLabels }}
+    {{- with .Values.statefulSet.extraLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    deployment.kubernetes.io/revision: "1"
-    {{- with .Values.deployment.annotations }}
+    statefulSet.kubernetes.io/revision: "1"
+    {{- with .Values.statefulSet.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   {{- if not (and .Values.pod .Values.pod.autoscaling .Values.pod.autoscaling.enabled) }}
-  replicas: {{ .Values.deployment.replicaCount | default "1" }}
+  replicas: {{ .Values.statefulSet.replicaCount | default "1" }}
   {{- end }}
-  {{- if .Values.deployment.revisionHistoryLimit }}
-  revisionHistoryLimit: {{ .Values.deployment.revisionHistoryLimit }}
+  {{- if .Values.statefulSet.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.statefulSet.revisionHistoryLimit }}
   {{- end }}
   selector:
     matchLabels:
