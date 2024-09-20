@@ -1,3 +1,6 @@
+{{- if  or (eq .Values.lifecycle "Deployment") (eq .Values.lifecycle "StatefulSet")}}
+{{ fail "Lifecycle is not valid. Valid values are Deployment, StatefulSet" }}
+{{- end }}
 {{- if .Values.app -}}
 apiVersion: apps/v1
 kind: {{ .Values.app.lifecycle | default "Deployment" }}
