@@ -3,8 +3,7 @@
 The objective of this repo is to deploy a custom k8s manifest from a generic Helm chart.
 Currently, we're supporting the following kinds:
 - ClusterRole & ClusterRoleBinding
-- Deployment
-- StatefullSet
+- Deployment or StatefullSet
 - HorizontalPodAutoscaler
 - Ingress
 - PodDisruptionBudget

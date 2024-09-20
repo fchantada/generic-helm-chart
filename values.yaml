@@ -2,12 +2,15 @@ app:
   name: example-app
   namespace: example
   version: "1.0.0"
-  # port where the underlying app is listening for requests
+  lifecycle: StatefulSet
+  replicaCount: 2
   listenPort: 80
   metricsPort: 3001
 
+
 serviceAccount:
   create: true
+  name: example-sa
 
 service:
   enabled: true
@@ -20,24 +23,18 @@ ingress:
       - /v1
     className: nginx
 
-deployment:
-  enabled: true
-  replicaCount: 2
-
 pod:
   restartPolicy: Always
   terminationGracePeriodSecs: 30
   container:
-    repository: example-app
-    tag: latest
+    repository: nginxdemos/hello
+    tag: 0.4
     pullPolicy: IfNotPresent
-    securityContext:
-      runAsUser: 1000
-      runAsGroup: 3000
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop:
-          - ALL
+    volumeMounts:
+      - name: nginx-cache
+        mountPath: /var/cache/nginx
+      - name: nginx-run
+        mountPath: /var/run
     readinessProbe:
       failureThreshold: 3
       httpGet:
@@ -56,3 +53,8 @@ pod:
       periodSeconds: 10
       successThreshold: 1
       timeoutSeconds: 5
+  volumes:
+    - name: nginx-cache
+      emptyDir: {}
+    - name: nginx-run
+      emptyDir: {}
