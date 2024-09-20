@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: {{ .Values.app.lifecycle | default "Deployment" }}
 metadata:
-  name: {{ include "helper.chartName" . }}
+  name: {{ include "helper.chartName" . }} - {{ lower .Values.app.lifecycle | default "deployment" }}
   namespace: {{ include "helper.namespace" . }}
   labels:
     {{- include "helper.labels" . | nindent 4 }}
