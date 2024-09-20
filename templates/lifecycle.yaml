@@ -1,4 +1,4 @@
-{{- if  or (eq .Values.lifecycle "Deployment") (eq .Values.lifecycle "StatefulSet")}}
+{{- if  or (ne .Values.lifecycle "Deployment") (ne .Values.lifecycle "StatefulSet")}}
 {{ fail "Lifecycle is not valid. Valid values are Deployment, StatefulSet" }}
 {{- end }}
 {{- if .Values.app -}}
