@@ -3,9 +3,9 @@
 {{- end }}
 {{- if .Values.app -}}
 apiVersion: apps/v1
-kind: {{ .Values.app.lifecycle | default "Deployment" }}
+kind: {{ .Values.app.lifecycle }}
 metadata:
-  name: {{ include "helper.chartName" . }}
+  name: {{ include "helper.chartName" . }}-{{ lower .Values.app.lifecycle }}
   namespace: {{ include "helper.namespace" . }}
   labels:
     {{- include "helper.labels" . | nindent 4 }}
