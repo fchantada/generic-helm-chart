@@ -1,7 +1,4 @@
-{{- if  or (ne .Values.lifecycle "Deployment") (ne .Values.lifecycle "StatefulSet")}}
-{{ fail "Lifecycle is not valid. Valid values are Deployment, StatefulSet" }}
-{{- end }}
-{{- if .Values.app -}}
+{{- if  or (eq .Values.app.lifecycle "Deployment") (eq .Values.app.lifecycle "StatefulSet")}}
 apiVersion: apps/v1
 kind: {{ .Values.app.lifecycle }}
 metadata:
@@ -139,4 +136,6 @@ spec:
           {{- toYaml . | nindent 10 }}
       {{- end }}
   {{- end }}
+{{- else }}
+{{ fail "Lifecycle is not valid. Valid values are Deployment, StatefulSet" }}
 {{- end }}
