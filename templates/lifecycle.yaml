@@ -1,29 +1,25 @@
-{{- if and .Values.deployment .Values.deployment.enabled -}}
+{{- if  or (eq .Values.app.lifecycle "Deployment") (eq .Values.app.lifecycle "StatefulSet")}}
 apiVersion: apps/v1
-{{- if .Values.deployment.stateful }}
-kind: StatefulSet
-{{- else }}
-kind: Deployment
-{{- end }}
+kind: {{ .Values.app.lifecycle }}
 metadata:
-  name: {{ include "helper.chartName" . }}-deployment
+  name: {{ include "helper.chartName" . }}-{{ lower .Values.app.lifecycle }}
   namespace: {{ include "helper.namespace" . }}
   labels:
     {{- include "helper.labels" . | nindent 4 }}
-    {{- with .Values.deployment.extraLabels }}
+    {{- with .Values.app.extraLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    deployment.kubernetes.io/revision: "1"
-    {{- with .Values.deployment.annotations }}
+    {{ .Values.app.lifecycle | default "Deployment" }}.kubernetes.io/revision: "1"
+    {{- with .Values.app.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   {{- if not (and .Values.pod .Values.pod.autoscaling .Values.pod.autoscaling.enabled) }}
-  replicas: {{ .Values.deployment.replicaCount | default "1" }}
+  replicas: {{ .Values.app.replicaCount | default "1" }}
   {{- end }}
-  {{- if .Values.deployment.revisionHistoryLimit }}
-  revisionHistoryLimit: {{ .Values.deployment.revisionHistoryLimit }}
+  {{- if .Values.app.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.app.revisionHistoryLimit }}
   {{- end }}
   selector:
     matchLabels:
@@ -106,11 +102,6 @@ spec:
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-        {{- if .Values.pod }}
-        {{- with .Values.pod.volumes }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
-        {{- end }}
       {{- end }}
       {{- if .Values.pod }}
       {{- with .Values.pod.volumes }}
@@ -126,7 +117,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- end }}
-  {{- if and .Values.deployment.stateful .Values.persistence .Values.persistence.enabled }}
+  {{- if and .Values.persistence .Values.persistence.enabled }}
   volumeClaimTemplates:
   - metadata:
       name: storage
@@ -145,4 +136,6 @@ spec:
           {{- toYaml . | nindent 10 }}
       {{- end }}
   {{- end }}
+{{- else }}
+{{ fail "Lifecycle is not valid. Valid values are Deployment, StatefulSet" }}
 {{- end }}

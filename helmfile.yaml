@@ -2,7 +2,7 @@ helmDefaults:
   wait: true
   timeout: 120
   atomic: true
-  createNamespace: false
+  createNamespace: true
 
 ---
 
