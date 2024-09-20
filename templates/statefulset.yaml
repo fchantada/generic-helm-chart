@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "helper.chartName" . }}-statefulSet
+  name: {{ include "helper.chartName" . }}-statefulset
   namespace: {{ include "helper.namespace" . }}
   labels:
     {{- include "helper.labels" . | nindent 4 }}
