@@ -1,7 +1,7 @@
 app:
   name: example-app
   namespace: example
-  version: "1.0.0"
+  version: "0.1.1"
   lifecycle: StatefulSet
   replicaCount: 2
   listenPort: 80
